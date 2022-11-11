@@ -1,0 +1,26 @@
+name: Install packages via Ansible
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2.4.0
+        with:
+          key: ${{ secrets.ANSIBLE_SSH_PRIVATE }}
+          name: id_rsa # optional
+          known_hosts: |
+            eu-001.bosagora.io,188.165.202.109 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBExBHwfpE2eS1gEJM9SkUhyZetPxlsGQ8u1KMjAPMt4XxcXYmyxhpkopN92okgAaA302mUY1VvsLgT984s5d7AM=
+            eu-002.bosagora.io,91.121.136.159 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBArtht9WIeTwOy2eCqj4NszQ299OFT7kY2CcBIoz7Xs66F8pEZXrwtjCNSVtZ3N6zNWEdNEioAhJePkslMbgk+E=
+            eu-003.bosagora.io,188.165.212.208 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPd3htqmxtd111XIO6fwkXndHX8Um7lJVTiC/EiJSZD2SqoYPi22KvDcCFyPkS3QPHDJAiiZTJ4a+ncRBub0NuE=
+            eu-004.bosagora.io,188.165.255.82 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBMDyVbRmEJvQDvCbiz8UmP8I4RPJ9n9lU+X9Bm85ZOzB/TEi07u9LTH4GWX1JV+5JHgWXHcgOT8qDF9a4kFw1q0=
+            na-001.bosagora.io,192.99.10.34 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLYAVx7MhPC1aZSngw9Q67TOZ3LtyP5Vjt4pYOqRIBP75nLyA1sAshbfBDieem+Xz77DZ0TJzp0OJNsQPEknv+o=
+            na-002.bosagora.io,192.99.1.23 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBMPqiPEsoIP2KqXfDv3PwlpFaFs8gIB0gMCk/HRPVhbEdjIqciut19VvSKhNu+irGfoeStAvUjzQGQcVlC8HqVg=
+            na-003.bosagora.io,192.99.5.67 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDrn8Az6Hcw9MRcK3M0L7ytblQGwQuJJJxY+54Dbcv6ct762Gxi91Z0sCYNVb3/K9eIRM9v7i4LfGozhm81z7Qs=
+            na-004.bosagora.io,192.99.5.71 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLwnfWO72vRjdXHABIDB09uOXhfO6Na+hOF2icESFf8I3OYBQZkmmfmt5SKK+ADYHBgz1W7Hvyb8xtt7LbU8xLg=
+            eu-005.bosagora.io,94.23.248.89 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBaz83SV0u9N6tBTMTOaH6SiS6QtDpt/Mfm/XGzDoSSD6kX5X8eK0JDFwunmfcYiG4F5vrVlTMKwVag5mewHtME=
+      - name: run playbook
+        run: |
+          ansible-playbook -i ansible/inventory.yml -u ubuntu ansible/install.yml

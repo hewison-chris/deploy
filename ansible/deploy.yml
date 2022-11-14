@@ -6,24 +6,33 @@
   vars:
     welcome_message: "Welcome to Ansible world!"
     document_root: /var/www/html
-    app_root:
+    app_root: webapp
   tasks:
     - name: Delete existing index.html
       ansible.builtin.file:
         path: /usr/share/nginx/html/index.html
         state: absent
+    - name: Create web app folder
+      ansible.builtin.file:
+        path: "{{ document_root }}/{{ app_root }}"
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
+        state: directory
     - name: Copy our index.html
       ansible.builtin.template:
-        src: files/index.html.j2
-        dest: /usr/share/nginx/html/index.html
-        owner: ubuntu
-        mode: u=rwx,g=rx,o=rx
+        src: "files/{{ app_root }}/index.html.j2"
+        dest: "{{ document_root }}/{{ app_root }}/index.html"
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
     - name: Apply Nginx template
       ansible.builtin.template:
         src: files/nginx.conf.j2
         dest: /etc/nginx/sites-available/default
         owner: root
-        mode: u=rw,g=r,o=rx
+        group: root
+        mode: u=rw,g=r,o=r
       notify: Restart Nginx
     - name: Enable new site
       ansible.builtin.file:

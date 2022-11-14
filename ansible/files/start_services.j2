@@ -1,0 +1,7 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+{% for item in services_to_stop %}
+echo "starting service {{ item }}"
+systemctl start {{ item }}
+{% endfor %}

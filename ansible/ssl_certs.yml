@@ -1,0 +1,70 @@
+---
+# ssl_certs.yml
+- name: Install ssl certificates
+  hosts: all
+  become: true
+  vars:
+    services_to_stop:
+      - nginx
+    certbot_create_command: >-
+      certbot certonly --standalone --hsts
+      --noninteractive --agree-tos
+      --email cto@bosagora.io
+      -d {{ inventory_hostname }}
+      {{ '--pre-hook /etc/letsencrypt/renewal-hooks/pre/stop_services'
+        if services_to_stop
+      else '' }}
+      {{ '--post-hook /etc/letsencrypt/renewal-hooks/post/start_services'
+      if services_to_stop
+      else '' }}
+  tasks:
+    - name: Check if certificate already exists.
+      ansible.builtin.stat:
+        path: /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem
+      register: letsencrypt_cert
+    - name: Ensure pre and post hook folders exist.
+      ansible.builtin.file:
+        path: /etc/letsencrypt/renewal-hooks/{{ item }}
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+      with_items:
+        - pre
+        - post
+
+    - name: Create pre hook to stop services.
+      ansible.builtin.template:
+        src: files/stop_services.j2
+        dest: /etc/letsencrypt/renewal-hooks/pre/stop_services
+        owner: root
+        group: root
+        mode: 0750
+      when:
+        - services_to_stop is defined
+        - services_to_stop
+
+    - name: Create post hook to start services.
+      ansible.builtin.template:
+        src: files/start_services.j2
+        dest: /etc/letsencrypt/renewal-hooks/post/start_services
+        owner: root
+        group: root
+        mode: 0750
+      when:
+        - services_to_stop is defined
+        - services_to_stop
+
+    - name: Remove any apt installed certbot
+      ansible.builtin.apt:
+        pkg:
+          - certbot
+        state: absent
+    - name: Install certbot for letsencrypt
+      community.general.snap:
+        name: certbot
+        classic: true
+
+    - name: Generate new certificate if one doesn't exist.
+      ansible.builtin.command: "{{ certbot_create_command }}"
+      when: not letsencrypt_cert.stat.exists

@@ -24,7 +24,8 @@
           - virtualenv
           - python3-setuptools
           - zip
-          - nginx
+          - haproxy
+          - snapd
         state: present
 
     - name: Add Docker GPG apt Key
@@ -63,4 +64,5 @@
     - name: Enable ubuntu user to use docker
       ansible.builtin.user:
         name: ubuntu
-        group: docker
+        append: true
+        groups: docker

@@ -1,0 +1,44 @@
+---
+# deploy.yml
+- name: Deploy our app
+  hosts: all
+  become: true
+  vars:
+    welcome_message: "Welcome to Ansible world!"
+    document_root: /var/www/html
+    app_root:
+  tasks:
+    - name: Delete existing index.html
+      ansible.builtin.file:
+        path: /usr/share/nginx/html/index.html
+        state: absent
+    - name: Copy our index.html
+      ansible.builtin.template:
+        src: files/index.html.j2
+        dest: /usr/share/nginx/html/index.html
+        owner: ubuntu
+        mode: u=rwx,g=rx,o=rx
+    - name: Apply Nginx template
+      ansible.builtin.template:
+        src: files/nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+        owner: root
+        mode: u=rw,g=r,o=rx
+      notify: Restart Nginx
+    - name: Enable new site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/default
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify: Restart Nginx
+    - name: Allow all access to tcp port 80
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
